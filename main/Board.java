@@ -35,7 +35,6 @@ public class Board extends JPanel{
     public CheckScanner checkScanner = new CheckScanner(this);
 
     public int enPassantTile = -1;
-
     private boolean isWhiteToMove = true;
     private boolean isGameOver = false;
 
