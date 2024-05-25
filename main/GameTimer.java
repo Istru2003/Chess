@@ -28,17 +28,11 @@ class GameTimer {
             }
         });
         timer.start();
-        startTimers(); // Initially, set the timer based on the default time control
+        startTimers();
     }
 
     public void switchTurn() {
         isWhiteTurn = !isWhiteTurn;
-    }
-
-    public void stopBlackTimer() {
-        if (!isWhiteTurn) { // Check if black's turn is ongoing
-            timer.stop(); // Stop the timer if black's turn
-        }
     }
 
     private void updateTimer() {
@@ -78,9 +72,9 @@ class GameTimer {
     }
 
     public void stopAndRemoveTimers(String selectedTimeControl) {
-        timer.stop(); // Остановить текущий таймер
-        whiteTimerLabel.setText("Alb: "); // Оставить только "Alb: "
-        blackTimerLabel.setText("Negru: " + selectedTimeControl); // Оставить только "Negru: "
+        timer.stop();
+        whiteTimerLabel.setText("Alb: ");
+        blackTimerLabel.setText("Negru: " + selectedTimeControl + ":00");
     }
 
 }

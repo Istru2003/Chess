@@ -7,7 +7,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 public class Main {
-    public static String selectedTimeControl = "60"; // Default time control
+    public static String selectedTimeControl = "60";
     private static JButton startButton;
 
     public static void main(String[] args) {
@@ -141,13 +141,13 @@ public class Main {
     public static int getTimeControlInSeconds(String timeControl) {
         switch (timeControl) {
             case "60":
-                return 60 * 60; // 60 minutes in seconds
+                return 60 * 60;
             case "30":
-                return 30 * 60; // 30 minutes in seconds
+                return 30 * 60;
             case "10":
-                return 10 * 60; // 10 minutes in seconds
+                return 10 * 60;
             default:
-                return 60 * 60; // Default to Classic if something goes wrong
+                return 60 * 60;
         }
     }
 }

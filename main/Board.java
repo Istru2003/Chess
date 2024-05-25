@@ -1,41 +1,41 @@
-package main; // Declară pachetul main
+package main;
 
 import java.awt.*;
-import java.util.ArrayList; // Importă clasa ArrayList din biblioteca util
-import java.util.stream.Collectors; // Importă metoda Collectors din biblioteca stream
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 import javax.swing.*;
 
-import pieces.Bishop; // Importă clasa Bishop din pachetul pieces
-import pieces.King; // Importă clasa King din pachetul pieces
-import pieces.Knight; // Importă clasa Knight din pachetul pieces
-import pieces.Pawn; // Importă clasa Pawn din pachetul pieces
-import pieces.Piece; // Importă clasa Piece din pachetul pieces
-import pieces.Queen; // Importă clasa Queen din pachetul pieces
-import pieces.Rook; // Importă clasa Rook din pachetul pieces
+import pieces.Bishop;
+import pieces.King;
+import pieces.Knight;
+import pieces.Pawn;
+import pieces.Piece;
+import pieces.Queen;
+import pieces.Rook;
 
 import static main.Main.getTimeControlInSeconds;
 import static main.Main.selectedTimeControl;
 
-public class Board extends JPanel{ // Declară clasa Board care extinde JPanel
-    public int titleSize = 85; // Declară și inițializează dimensiunea titlului
+public class Board extends JPanel{
+    public int titleSize = 85;
     private GameTimer gameTimer;
-    int cols = 8; // Declară și inițializează numărul de coloane
-    int rows = 8; // Declară și inițializează numărul de rânduri
+    int cols = 8;
+    int rows = 8;
 
-    ArrayList<Piece> pieceList = new ArrayList<>(); // Creează o listă de piese
+    ArrayList<Piece> pieceList = new ArrayList<>();
 
-    public Piece selectedPiece; // Declară o piesă selectată
+    public Piece selectedPiece;
 
-    private MoveLog moveLog; // Declară un jurnal de mutări
+    private MoveLog moveLog;
 
-    Input input = new Input(this); // Creează un obiect de input
+    Input input = new Input(this);
 
-    public CheckScanner checkScanner = new CheckScanner(this); // Creează un scanner de șah
+    public CheckScanner checkScanner = new CheckScanner(this);
 
-    public int enPassantTile = -1; // Declară și inițializează tile-ul en passant
-    private boolean isWhiteToMove = true; // Declară și inițializează mutarea albă
-    private boolean isGameOver = false; // Declară și inițializează starea jocului
+    public int enPassantTile = -1;
+    private boolean isWhiteToMove = true;
+    private boolean isGameOver = false;
 
     public Board(MoveLog moveLog, GameTimer gameTimer) {
         this.gameTimer = gameTimer;
@@ -46,48 +46,47 @@ public class Board extends JPanel{ // Declară clasa Board care extinde JPanel
         addPieces();
     }
 
-    public Piece getPiece(int col, int row){ // Metodă pentru obținerea unei piese de pe tablă
-        for(Piece piece : pieceList){ // Iterează prin lista de piese
-            if(piece.col == col && piece.row == row){ // Verifică dacă piesa se află pe poziția specificată
-                return piece; // Returnează piesa
+    public Piece getPiece(int col, int row){
+        for(Piece piece : pieceList){
+            if(piece.col == col && piece.row == row){
+                return piece;
             }
         }
-        return null; // Returnează null dacă nu există nicio piesă pe poziția specificată
+        return null;
     }
 
-    public void makeMove(Move move) { // Metodă pentru efectuarea unei mutări
-        if (move.piece.name.equals("Pion")) { // Verifică dacă piesa este un pion
-            movePawn(move); // Mută pionul
-        } else if (move.piece.name.equals("Rege")) { // Verifică dacă piesa este un rege
-            moveKing(move); // Mută regele
+    public void makeMove(Move move) {
+        if (move.piece.name.equals("Pion")) {
+            movePawn(move);
+        } else if (move.piece.name.equals("Rege")) {
+            moveKing(move);
         }
-        move.piece.col = move.newCol; // Actualizează coloana piesei
-        move.piece.row = move.newRow; // Actualizează rândul piesei
-        move.piece.xPos = move.newCol * titleSize; // Actualizează poziția X a piesei
-        move.piece.yPos = move.newRow * titleSize; // Actualizează poziția Y a piesei
+        move.piece.col = move.newCol;
+        move.piece.row = move.newRow;
+        move.piece.xPos = move.newCol * titleSize;
+        move.piece.yPos = move.newRow * titleSize;
 
-        move.piece.isFirstMove = false; // Marchează că piesa nu mai este la prima mutare
+        move.piece.isFirstMove = false;
 
-        capture(move.capture); // Capturează piesa
-
-        String moveString = (move.piece.isWhite ? "Alb" : "Negru") + " " + move.piece.name + ": " + getAlgebraicNotation(move.oldCol, move.oldRow) + " -> " + getAlgebraicNotation(move.newCol, move.newRow); // Formatează șirul de mutare
-        if (move.piece instanceof King) { // Verifică dacă piesa este un rege
-            String castlingType = ((King) move.piece).getCastlingType(move.newCol, move.newRow); // Obține tipul de rocadă
-            if (!castlingType.isEmpty()) { // Verifică dacă tipul de rocadă nu este gol
-                moveString = (move.piece.isWhite ? "Alb" : "Negru") + " Rocare: " + castlingType; // Formatează șirul de rocadă
-            } else if (move.capture != null) { // Verifică dacă a fost capturată o piesă
-                moveString += "\n   capturi " + move.capture.name; // Adaugă piesa capturată la șirul de mutare
+        capture(move.capture);
+        String moveString = (move.piece.isWhite ? "Alb" : "Negru") + " " + move.piece.name + ": " + getAlgebraicNotation(move.oldCol, move.oldRow) + " -> " + getAlgebraicNotation(move.newCol, move.newRow);
+        if (move.piece instanceof King) {
+            String castlingType = ((King) move.piece).getCastlingType(move.newCol, move.newRow);
+            if (!castlingType.isEmpty()) {
+                moveString = (move.piece.isWhite ? "Alb" : "Negru") + " Rocare: " + castlingType;
+            } else if (move.capture != null) {
+                moveString += "\n   capturi " + move.capture.name;
             }
-        } else if (move.capture != null) { // Verifică dacă a fost capturată o piesă
-            moveString += "\n    capturi " + move.capture.name; // Adaugă piesa capturată la șirul de mutare
+        } else if (move.capture != null) {
+            moveString += "\n    capturi " + move.capture.name;
         }
 
-        moveLog.addMove(moveString); // Adaugă mutarea în jurnal
+        moveLog.addMove(moveString);
 
-        isWhiteToMove = !isWhiteToMove; // Schimbă rândul de mutare
+        isWhiteToMove = !isWhiteToMove;
         gameTimer.switchTurn();
 
-        updateGameState(); // Actualizează starea jocului
+        updateGameState();
 
     }
 
@@ -99,170 +98,170 @@ public class Board extends JPanel{ // Declară clasa Board care extinde JPanel
     }
 
 
-    public String getAlgebraicNotation(int col, int row) { // Metodă pentru obținerea notației algebrice
-        String colString = ""; // Declară șirul pentru coloane
-        switch (col) { // Verifică valoarea coloanei
+    public String getAlgebraicNotation(int col, int row) {
+        String colString = "";
+        switch (col) {
             case 0:
-                colString = "a"; // Setează valoarea pentru coloana 0
+                colString = "a";
                 break;
             case 1:
-                colString = "b"; // Setează valoarea pentru coloana 1
+                colString = "b";
                 break;
             case 2:
-                colString = "c"; // Setează valoarea pentru coloana 2
+                colString = "c";
                 break;
             case 3:
-                colString = "d"; // Setează valoarea pentru coloana 3
+                colString = "d";
                 break;
             case 4:
-                colString = "e"; // Setează valoarea pentru coloana 4
+                colString = "e";
                 break;
             case 5:
-                colString = "f"; // Setează valoarea pentru coloana 5
+                colString = "f";
                 break;
             case 6:
-                colString = "g"; // Setează valoarea pentru coloana 6
+                colString = "g";
                 break;
             case 7:
-                colString = "h"; // Setează valoarea pentru coloana 7
+                colString = "h";
                 break;
         }
-        return colString + (8 - row); // Returnează notația algebrică
+        return colString + (8 - row);
     }
 
-    private void moveKing(Move move){ // Metodă pentru mutarea regelui
-        if(Math.abs(move.piece.col - move.newCol) == 2){ // Verifică dacă mutarea este o rocada
-            Piece rook; // Declară o piesă turn
-            if(move.piece.col < move.newCol){ // Verifică dacă rocada este pe partea regelui
-                rook = getPiece(7, move.piece.row); // Obține turnul din colțul dreapta
-                rook.col = 5; // Setează coloana turnului
-            } else{ // Dacă rocada este pe partea damei
-                rook = getPiece(0, move.piece.row); // Obține turnul din colțul stânga
-                rook.col = 3; // Setează coloana turnului
+    private void moveKing(Move move){
+        if(Math.abs(move.piece.col - move.newCol) == 2){
+            Piece rook;
+            if(move.piece.col < move.newCol){
+                rook = getPiece(7, move.piece.row);
+                rook.col = 5;
+            } else{
+                rook = getPiece(0, move.piece.row);
+                rook.col = 3;
             }
-            rook.xPos = rook.col * titleSize; // Actualizează poziția X a turnului
+            rook.xPos = rook.col * titleSize;
         }
     }
 
-    private void movePawn(Move move){ // Metodă pentru mutarea pionului
-        int colorIndex = move.piece.isWhite ? 1 : -1; // Setează indexul culorii
+    private void movePawn(Move move){
+        int colorIndex = move.piece.isWhite ? 1 : -1;
 
-        if(getTileNum(move.newCol, move.newRow) == enPassantTile){ // Verifică dacă este mutare en passant
-            move.capture = getPiece(move.newCol, move.newRow + colorIndex); // Capturează piesa en passant
+        if(getTileNum(move.newCol, move.newRow) == enPassantTile){
+            move.capture = getPiece(move.newCol, move.newRow + colorIndex);
         }
-        if(Math.abs(move.piece.row - move.newRow) == 2){ // Verifică dacă pionul a mutat două rânduri
-            enPassantTile = getTileNum(move.newCol, move.newRow + colorIndex); // Setează tile-ul en passant
+        if(Math.abs(move.piece.row - move.newRow) == 2){
+            enPassantTile = getTileNum(move.newCol, move.newRow + colorIndex);
         } else {
-            enPassantTile = -1; // Resetează tile-ul en passant
+            enPassantTile = -1;
         }
 
-        colorIndex = move.piece.isWhite ? 0 : 7; // Setează indexul culorii pentru promovare
-        if(move.newRow == colorIndex){ // Verifică dacă pionul a ajuns la capătul tablei
-            promotePawn(move); // Promovează pionul
+        colorIndex = move.piece.isWhite ? 0 : 7;
+        if(move.newRow == colorIndex){
+            promotePawn(move);
         }
     }
 
-    private void promotePawn(Move move){ // Metodă pentru promovarea pionului
-        pieceList.add(new Queen(this, move.newCol, move.newRow, move.piece.isWhite)); // Adaugă o regină în locul pionului
-        capture(move.piece); // Capturează pionul promovat
+    private void promotePawn(Move move){
+        pieceList.add(new Queen(this, move.newCol, move.newRow, move.piece.isWhite));
+        capture(move.piece);
     }
 
-    public void capture(Piece piece){ // Metodă pentru capturarea unei piese
-        pieceList.remove(piece); // Elimină piesa din listă
+    public void capture(Piece piece){
+        pieceList.remove(piece);
     }
 
-    public boolean isValidMove(Move move){ // Metodă pentru verificarea validității unei mutări
+    public boolean isValidMove(Move move){
 
-        if(isGameOver){ // Verifică dacă jocul s-a terminat
-            return false; // Returnează false dacă jocul s-a terminat
+        if(isGameOver){
+            return false;
         }
-        if(move.piece.isWhite != isWhiteToMove){ // Verifică dacă este rândul piesei să mute
-            return false; // Returnează false dacă nu este rândul piesei să mute
+        if(move.piece.isWhite != isWhiteToMove){
+            return false;
         }
-        if(sameTeam(move.piece, move.capture)){ // Verifică dacă piesele sunt din aceeași echipă
-            return false; // Returnează false dacă piesele sunt din aceeași echipă
+        if(sameTeam(move.piece, move.capture)){
+            return false;
         }
-        if(!move.piece.isValidMovement(move.newCol, move.newRow)){ // Verifică dacă mutarea este validă pentru piesă
-            return false; // Returnează false dacă mutarea nu este validă
+        if(!move.piece.isValidMovement(move.newCol, move.newRow)){
+            return false;
         }
-        if(move.piece.moveCollidesWithPiece(move.newCol, move.newRow)){ // Verifică dacă mutarea colizionează cu o altă piesă
-            return false; // Returnează false dacă mutarea colizionează
+        if(move.piece.moveCollidesWithPiece(move.newCol, move.newRow)){
+            return false;
         }
-        if(checkScanner.isKingChecked(move)){ // Verifică dacă regele este în șah
-            return false; // Returnează false dacă regele este în șah
+        if(checkScanner.isKingChecked(move)){
+            return false;
         }
-        return true; // Returnează true dacă mutarea este validă
+        return true;
     }
 
-    public boolean sameTeam(Piece p1, Piece p2){ // Metodă pentru verificarea dacă piesele sunt din aceeași echipă
-        if(p1 == null || p2 == null){ // Verifică dacă piesele sunt null
-            return false; // Returnează false dacă piesele sunt null
+    public boolean sameTeam(Piece p1, Piece p2){
+        if(p1 == null || p2 == null){
+            return false;
         }
-        return p1.isWhite == p2.isWhite; // Returnează true dacă piesele sunt din aceeași echipă
+        return p1.isWhite == p2.isWhite;
     }
 
-    public int getTileNum(int col, int row){ // Metodă pentru obținerea numărului de tile
-        return row * rows + col; // Calculează și returnează numărul de tile
+    public int getTileNum(int col, int row){
+        return row * rows + col;
     }
 
-    Piece findKing(boolean isWhite){ // Metodă pentru găsirea regelui
-        for(Piece piece : pieceList){ // Iterează prin lista de piese
-            if(isWhite == piece.isWhite && piece.name.equals("Rege")){ // Verifică dacă piesa este regele căutat
-                return piece; // Returnează regele găsit
+    Piece findKing(boolean isWhite){
+        for(Piece piece : pieceList){
+            if(isWhite == piece.isWhite && piece.name.equals("Rege")){
+                return piece;
             }
         }
-        return null; // Returnează null dacă nu a găsit regele
+        return null;
     }
 
-    public void addPieces(){ // Metodă pentru adăugarea pieselor pe tablă
-        pieceList.add(new Knight(this, 1, 0, false)); // Adaugă un cal
-        pieceList.add(new Knight(this, 6, 0, false)); // Adaugă un cal
-        pieceList.add(new Rook(this, 0, 0, false)); // Adaugă un turn
-        pieceList.add(new Rook(this, 7, 0, false)); // Adaugă un turn
-        pieceList.add(new Bishop(this, 2, 0, false)); // Adaugă un nebun
-        pieceList.add(new Bishop(this, 5, 0, false)); // Adaugă un nebun
-        pieceList.add(new Queen(this, 3, 0, false)); // Adaugă o regină
-        pieceList.add(new King(this, 4, 0, false)); // Adaugă un rege
+    public void addPieces(){
+        pieceList.add(new Knight(this, 1, 0, false));
+        pieceList.add(new Knight(this, 6, 0, false));
+        pieceList.add(new Rook(this, 0, 0, false));
+        pieceList.add(new Rook(this, 7, 0, false));
+        pieceList.add(new Bishop(this, 2, 0, false));
+        pieceList.add(new Bishop(this, 5, 0, false));
+        pieceList.add(new Queen(this, 3, 0, false));
+        pieceList.add(new King(this, 4, 0, false));
 
-        pieceList.add(new Pawn(this, 1, 1, false)); // Adaugă un pion
-        pieceList.add(new Pawn(this, 6, 1, false)); // Adaugă un pion
-        pieceList.add(new Pawn(this, 0, 1, false)); // Adaugă un pion
-        pieceList.add(new Pawn(this, 7, 1, false)); // Adaugă un pion
-        pieceList.add(new Pawn(this, 2, 1, false)); // Adaugă un pion
-        pieceList.add(new Pawn(this, 5, 1, false)); // Adaugă un pion
-        pieceList.add(new Pawn(this, 3, 1, false)); // Adaugă un pion
-        pieceList.add(new Pawn(this, 4, 1, false)); // Adaugă un pion
+        pieceList.add(new Pawn(this, 1, 1, false));
+        pieceList.add(new Pawn(this, 6, 1, false));
+        pieceList.add(new Pawn(this, 0, 1, false));
+        pieceList.add(new Pawn(this, 7, 1, false));
+        pieceList.add(new Pawn(this, 2, 1, false));
+        pieceList.add(new Pawn(this, 5, 1, false));
+        pieceList.add(new Pawn(this, 3, 1, false));
+        pieceList.add(new Pawn(this, 4, 1, false));
 
-        pieceList.add(new Knight(this, 1, 7, true)); // Adaugă un cal
-        pieceList.add(new Knight(this, 6, 7, true)); // Adaugă un cal
-        pieceList.add(new Rook(this, 0, 7, true)); // Adaugă un turn
-        pieceList.add(new Rook(this, 7, 7, true)); // Adaugă un turn
-        pieceList.add(new Bishop(this, 2, 7, true)); // Adaugă un nebun
-        pieceList.add(new Bishop(this, 5, 7, true)); // Adaugă un nebun
-        pieceList.add(new Queen(this, 3, 7, true)); // Adaugă o regină
-        pieceList.add(new King(this, 4, 7, true)); // Adaugă un rege
+        pieceList.add(new Knight(this, 1, 7, true));
+        pieceList.add(new Knight(this, 6, 7, true));
+        pieceList.add(new Rook(this, 0, 7, true));
+        pieceList.add(new Rook(this, 7, 7, true));
+        pieceList.add(new Bishop(this, 2, 7, true));
+        pieceList.add(new Bishop(this, 5, 7, true));
+        pieceList.add(new Queen(this, 3, 7, true));
+        pieceList.add(new King(this, 4, 7, true));
 
-        pieceList.add(new Pawn(this, 1, 6, true)); // Adaugă un pion
-        pieceList.add(new Pawn(this, 6, 6, true)); // Adaugă un pion
-        pieceList.add(new Pawn(this, 0, 6, true)); // Adaugă un pion
-        pieceList.add(new Pawn(this, 7, 6, true)); // Adaugă un pion
-        pieceList.add(new Pawn(this, 2, 6, true)); // Adaugă un pion
-        pieceList.add(new Pawn(this, 5, 6, true)); // Adaugă un pion
-        pieceList.add(new Pawn(this, 3, 6, true)); // Adaugă un pion
-        pieceList.add(new Pawn(this, 4, 6, true)); // Adaugă un pion
+        pieceList.add(new Pawn(this, 1, 6, true));
+        pieceList.add(new Pawn(this, 6, 6, true));
+        pieceList.add(new Pawn(this, 0, 6, true));
+        pieceList.add(new Pawn(this, 7, 6, true));
+        pieceList.add(new Pawn(this, 2, 6, true));
+        pieceList.add(new Pawn(this, 5, 6, true));
+        pieceList.add(new Pawn(this, 3, 6, true));
+        pieceList.add(new Pawn(this, 4, 6, true));
     }
 
-    public void updateGameState() { // Metodă pentru actualizarea stării jocului
-        Piece king = findKing(isWhiteToMove); // Găsește regele
-        if (checkScanner.isGameOver(king)) { // Verifică dacă jocul s-a terminat
-            if (checkScanner.isKingChecked(new Move(this, king, king.col, king.row))) { // Verifică dacă regele este în șah
-                showGameOverDialog(isWhiteToMove ? "Negrul Castiga!" : "Albul Castiga!"); // Afișează dialogul de sfârșit de joc
+    public void updateGameState() {
+        Piece king = findKing(isWhiteToMove);
+        if (checkScanner.isGameOver(king)) {
+            if (checkScanner.isKingChecked(new Move(this, king, king.col, king.row))) {
+                showGameOverDialog(isWhiteToMove ? "Negrul Castiga!" : "Albul Castiga!");
             } else {
                 showGameOverDialog("Impas!"); // Afișează dialogul de pat
             }
-        } else if (insufficientMaterial(true) && insufficientMaterial(false)) { // Verifică materialul insuficient
-            showGameOverDialog("Material insuficient!"); // Afișează dialogul de material insuficient
-            isGameOver = true; // Marchează jocul ca fiind terminat
+        } else if (insufficientMaterial(true) && insufficientMaterial(false)) {
+            showGameOverDialog("Material insuficient!");
+            isGameOver = true;
         }
     }
 
@@ -299,12 +298,12 @@ public class Board extends JPanel{ // Declară clasa Board care extinde JPanel
         }
     }
 
-    private boolean insufficientMaterial(boolean isWhite){ // Metodă pentru verificarea materialului insuficient
-        ArrayList<String> names = pieceList.stream().filter(p -> p.isWhite == isWhite).map(p -> p.name).collect(Collectors.toCollection(ArrayList::new)); // Creează o listă de nume de piese
-        if(names.contains("Regină") || names.contains("Rook") || names.contains("Pion")){ // Verifică dacă lista conține regină, turn sau pion
-            return false; // Returnează false dacă lista conține una dintre aceste piese
+    private boolean insufficientMaterial(boolean isWhite){
+        ArrayList<String> names = pieceList.stream().filter(p -> p.isWhite == isWhite).map(p -> p.name).collect(Collectors.toCollection(ArrayList::new));
+        if(names.contains("Regină") || names.contains("Rook") || names.contains("Pion")){
+            return false;
         }
-        return names.size() < 3; // Returnează true dacă lista conține mai puțin de 3 piese
+        return names.size() < 3;
     }
 
     @Override
@@ -331,12 +330,12 @@ public class Board extends JPanel{ // Declară clasa Board care extinde JPanel
                 for (int c = 0; c < cols; c++) {
                     Move move = new Move(this, selectedPiece, c, r);
                     if (isValidMove(move)) {
-                        g2d.setColor(new Color(68, 180, 57, 190)); // Color for possible moves
+                        g2d.setColor(new Color(68, 180, 57, 190));
                         g2d.fillRect(c * titleSize, r * titleSize, titleSize, titleSize);
                         if (move.capture != null && move.capture.isWhite != selectedPiece.isWhite) {
-                            g2d.setColor(Color.RED); // Color for possible captures
+                            g2d.setColor(Color.RED);
                             g2d.fillRect(c * titleSize, r * titleSize, titleSize, titleSize);
-                            capturedPieces.add(move.capture); // Add captured piece to the list
+                            capturedPieces.add(move.capture);
                         }
                     }
                 }
@@ -351,13 +350,4 @@ public class Board extends JPanel{ // Declară clasa Board care extinde JPanel
             piece.paint(g2d);
         }
     }
-
-
-    public void switchTurn() {
-        isWhiteToMove = !isWhiteToMove;
-        gameTimer.switchTurn();
-        updateGameState();
-    }
-
-
 }
